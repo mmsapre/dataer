@@ -1,0 +1,14 @@
+package com.integration.em.client360.config;
+
+public class ExportConfig {
+
+    private String folder;
+
+    public String getFolder() {
+        return folder;
+    }
+
+    public void setFolder(String folder) {
+        this.folder = folder;
+    }
+}
