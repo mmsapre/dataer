@@ -1,0 +1,44 @@
+package com.integration.em.client360.config;
+
+public class SemanticConfig {
+
+    private boolean enabled;
+
+    private String llmUrl;
+
+    private String tokenEnv;
+
+    private String model;
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public String getLlmUrl() {
+        return llmUrl;
+    }
+
+    public void setLlmUrl(String llmUrl) {
+        this.llmUrl = llmUrl;
+    }
+
+    public String getTokenEnv() {
+        return tokenEnv;
+    }
+
+    public void setTokenEnv(String tokenEnv) {
+        this.tokenEnv = tokenEnv;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+}
