@@ -1,0 +1,31 @@
+package com.client360.util;
+
+public class FusedIdGenerator {
+
+    public static String fused(
+
+            String clusterId,
+
+            String entityType
+
+    ){
+
+        return "FUSED_"
+
+                +
+
+                entityType
+
+                +
+
+                "_"
+
+                +
+
+                clusterId
+                        .replace(
+                                "MRD_CLUSTER_",
+                                ""
+                        );
+    }
+}
