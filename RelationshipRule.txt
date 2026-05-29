@@ -1,0 +1,8 @@
+package com.integration.em.client360.config;
+
+public record RelationshipRule(
+        String parent,
+        String child,
+        String relation,
+        String joinField
+) {}
