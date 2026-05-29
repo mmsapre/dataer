@@ -1,0 +1,86 @@
+package com.integration.em.client360.block;
+
+import com.integration.em.client360.config.CsvSourceConfig;
+import com.integration.em.client360.exception.PipelineExceptionRecord;
+import com.integration.em.client360.util.LogicalIdGenerator;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class BlockHintGenerator {
+
+    public Result generate(CsvSourceConfig config, List<Map<String, String>> rows) {
+        List<BlockHint> hints = new ArrayList<>();
+        List<PipelineExceptionRecord> exceptions = new ArrayList<>();
+
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, String> row = rows.get(i);
+
+            String businessKey = row.get(config.businessKeyField());
+            String logicalKey = first(row, config.blockingFields());
+
+            if (blank(businessKey)) {
+                exceptions.add(PipelineExceptionRecord.missing(
+                        "BLOCK_HINT",
+                        config.sourceName(),
+                        i + 1,
+                        config.businessKeyField(),
+                        row
+                ));
+                continue;
+            }
+
+            if (blank(logicalKey)) {
+                exceptions.add(PipelineExceptionRecord.missing(
+                        "BLOCK_HINT",
+                        config.sourceName(),
+                        i + 1,
+                        String.join("|", config.blockingFields()),
+                        row
+                ));
+                continue;
+            }
+
+            BlockHint hint = new BlockHint();
+            hint.setLogicalKey(logicalKey);
+            hint.setBlockId(LogicalIdGenerator.blockId(logicalKey));
+            hint.setEntityType(config.entityType());
+            hint.setSourceName(config.sourceName());
+            hint.setEntityId(LogicalIdGenerator.entityId(config.entityType(), businessKey));
+
+            copy(row, config.searchFields(), hint.getSearchAttributes());
+            copy(row, config.matchingFields(), hint.getMatchingAttributes());
+            copy(row, config.relationFields(), hint.getRelationAttributes());
+            hint.getRawAttributes().putAll(row);
+
+            hints.add(hint);
+        }
+
+        return new Result(hints, exceptions);
+    }
+
+    private String first(Map<String, String> row, List<String> fields) {
+        for (String f : fields) {
+            String v = row.get(f);
+            if (!blank(v)) return v;
+        }
+        return null;
+    }
+
+    private void copy(Map<String, String> row, List<String> fields, Map<String, String> target) {
+        for (String f : fields) {
+            String v = row.get(f);
+            if (!blank(v)) target.put(f, v);
+        }
+    }
+
+    private boolean blank(String v) {
+        return v == null || v.isBlank();
+    }
+
+    public record Result(
+            List<BlockHint> hints,
+            List<PipelineExceptionRecord> exceptions
+    ) {}
+}
