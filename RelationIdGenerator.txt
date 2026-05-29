@@ -1,0 +1,33 @@
+package com.client360.util;
+
+public class RelationIdGenerator {
+
+    public static String relation(
+
+            String source,
+
+            String relation,
+
+            String target
+
+    ){
+
+        return source
+
+                +
+
+                "::"
+
+                +
+
+                relation
+
+                +
+
+                "::"
+
+                +
+
+                target;
+    }
+}
