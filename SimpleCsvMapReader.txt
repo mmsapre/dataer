@@ -1,0 +1,35 @@
+package com.integration.em.client360.importer;
+
+import au.com.bytecode.opencsv.CSVReader;
+
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+public class SimpleCsvMapReader {
+
+    public List<Map<String, String>> read(String file) throws Exception {
+        CSVReader reader = new CSVReader(new FileReader(file));
+        List<String[]> rows = reader.readAll();
+
+        List<Map<String, String>> result = new ArrayList<>();
+        if (rows.isEmpty()) return result;
+
+        String[] headers = rows.get(0);
+
+        for (int i = 1; i < rows.size(); i++) {
+            Map<String, String> map = new LinkedHashMap<>();
+            String[] row = rows.get(i);
+
+            for (int j = 0; j < headers.length; j++) {
+                map.put(headers[j].trim(), j < row.length ? row[j].trim() : "");
+            }
+
+            result.add(map);
+        }
+
+        return result;
+    }
+}
