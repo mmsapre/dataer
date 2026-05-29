@@ -1,0 +1,41 @@
+package com.integration.em.client360.graph;
+
+import com.integration.em.client360.fusion.FusedEntity;
+import com.integration.em.client360.fusion.FusedRelation;
+import com.integration.em.client360.util.LogicalIdGenerator;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class KnowledgeGraphGenerator {
+
+    public Result generate(List<FusedEntity> entities, List<FusedRelation> relations) {
+        List<KgNode> nodes = new ArrayList<>();
+
+        for (FusedEntity e : entities) {
+            KgNode n = new KgNode();
+            n.setNodeId(e.getFusedId());
+            n.setLabel(e.getEntityType());
+            n.getProperties().putAll(e.getCanonicalAttributes());
+            n.getProperties().put("cluster_id", e.getClusterId());
+            nodes.add(n);
+        }
+
+        List<KgEdge> edges = new ArrayList<>();
+
+        for (FusedRelation r : relations) {
+            KgEdge e = new KgEdge();
+            e.setSource(r.getSourceFusedId());
+            e.setTarget(r.getTargetFusedId());
+            e.setRelation(r.getRelationType());
+            e.setEdgeId(LogicalIdGenerator.edgeId(r.getSourceFusedId(), r.getRelationType(), r.getTargetFusedId()));
+            e.getProperties().put("confidence", String.valueOf(r.getConfidence()));
+            e.getProperties().putAll(r.getEvidence());
+            edges.add(e);
+        }
+
+        return new Result(nodes, edges);
+    }
+
+    public record Result(List<KgNode> nodes, List<KgEdge> edges) {}
+}
