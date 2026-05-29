@@ -1,0 +1,49 @@
+match-rules:
+
+  - rule-name: PARTY_NAME
+
+    left-entity: PARTY
+
+    right-entity: PARTY
+
+    algorithm: JARO_WINKLER
+
+    left-field: party_name
+
+    right-field: party_name
+
+    threshold: 0.92
+
+    weight: 0.40
+
+  - rule-name: LEGAL_NAME
+
+    left-entity: PARTY
+
+    right-entity: PARTY
+
+    algorithm: SEMANTIC
+
+    left-field: legal_name
+
+    right-field: legal_name
+
+    threshold: 0.85
+
+    weight: 0.60
+
+  - rule-name: ACCOUNT_NAME
+
+    left-entity: SEC_ACCOUNT
+
+    right-entity: SEC_ACCOUNT
+
+    algorithm: JARO_WINKLER
+
+    left-field: account_nm
+
+    right-field: account_nm
+
+    threshold: 0.90
+
+    weight: 1.0
