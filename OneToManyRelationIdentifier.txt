@@ -1,0 +1,36 @@
+package com.integration.em.client360.relation;
+
+import com.integration.em.client360.candidate
+        .CandidateRecord;
+
+import java.util.*;
+
+public class OneToManyRelationIdentifier {
+
+    public Map<String,List<CandidateRecord>>
+    identify(
+
+            List<CandidateRecord>
+                    candidates
+
+    ){
+
+        Map<String,List<CandidateRecord>>
+                grouped =
+                new HashMap<>();
+
+        for(CandidateRecord c :
+                candidates){
+
+            grouped.computeIfAbsent(
+
+                    c.getLeftId(),
+
+                    k -> new ArrayList<>()
+
+            ).add(c);
+        }
+
+        return grouped;
+    }
+}
