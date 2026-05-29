@@ -1,0 +1,28 @@
+package com.integration.em.client360.fusion;
+
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+public class FusedEntity {
+
+    private String fusedId;
+    private String clusterId;
+    private String entityType;
+
+    private final Map<String, String> canonicalAttributes = new LinkedHashMap<>();
+    private final Set<String> sourceEntityIds = new LinkedHashSet<>();
+
+    public String getFusedId() { return fusedId; }
+    public void setFusedId(String fusedId) { this.fusedId = fusedId; }
+
+    public String getClusterId() { return clusterId; }
+    public void setClusterId(String clusterId) { this.clusterId = clusterId; }
+
+    public String getEntityType() { return entityType; }
+    public void setEntityType(String entityType) { this.entityType = entityType; }
+
+    public Map<String, String> getCanonicalAttributes() { return canonicalAttributes; }
+    public Set<String> getSourceEntityIds() { return sourceEntityIds; }
+}
