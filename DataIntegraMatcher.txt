@@ -1,0 +1,35 @@
+package com.integration.em.client360.dataintegra;
+
+import com.integration.em.blocker.DefaultAttributeValueGenerator;
+import com.integration.em.blocker.ValueBasedBlocker;
+import com.integration.em.matches.MAtchingEngine;
+import com.integration.em.model.Aligner;
+import com.integration.em.model.Attribute;
+import com.integration.em.model.DataSet;
+import com.integration.em.model.Record;
+import com.integration.em.processing.Processable;
+import com.integration.em.rules.compare.LabelComparatorJaccard;
+
+public class DataIntegraMatcher {
+
+    public Processable<Aligner<Record, Attribute>> align(
+            DataSet<Record, Attribute> left,
+            DataSet<Record, Attribute> right
+    ) {
+        ValueBasedBlocker<Record, Attribute, Attribute> blocker =
+                new ValueBasedBlocker<>(
+                        new DefaultAttributeValueGenerator(left.getSchema()),
+                        new DefaultAttributeValueGenerator(right.getSchema())
+                );
+
+        MAtchingEngine<Record, Attribute> engine = new MAtchingEngine<>();
+
+        return engine.runIdentityResolution(
+                left,
+                right,
+                null,
+                new LabelComparatorJaccard(),
+                blocker
+        );
+    }
+}
