@@ -1,0 +1,25 @@
+blocking-rules:
+
+  - entity-type: PARTY
+
+    strategy: FIRST_NON_NULL
+
+    fields:
+      - grid
+      - mrd_id
+
+  - entity-type: CONTACT
+
+    strategy: FIRST_NON_NULL
+
+    fields:
+      - email
+      - phone
+
+  - entity-type: SECURITY
+
+    strategy: FIRST_NON_NULL
+
+    fields:
+      - isin
+      - cusip
