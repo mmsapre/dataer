@@ -1,0 +1,22 @@
+public static void main(String[] args)
+        throws Exception {
+
+    ConfigRegistry.initialize(
+            "config/client360.yml");
+
+    Client360Config cfg =
+            ConfigRegistry.get();
+
+    System.out.println(
+            cfg.getApplicationName());
+
+    for(SourceConfig source :
+            cfg.getSources()) {
+
+        System.out.println(
+                source.getSourceName());
+
+        System.out.println(
+                source.getCsvFile());
+    }
+}
