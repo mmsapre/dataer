@@ -1,0 +1,118 @@
+package com.integration.em.client360.fusion;
+
+import com.integration.em.client360.block.BlockHint;
+import com.integration.em.client360.candidate.CandidateRecord;
+import com.integration.em.client360.util.LogicalIdGenerator;
+
+import java.util.*;
+
+public class FusionService {
+
+    public Result fuse(List<BlockHint> hints, List<CandidateRecord> candidates) {
+        Map<String, Set<String>> graph = new LinkedHashMap<>();
+
+        for (BlockHint h : hints) {
+            graph.computeIfAbsent(h.getEntityId(), k -> new LinkedHashSet<>());
+        }
+
+        for (CandidateRecord c : candidates) {
+            if (c.getMatchProbability() >= 0.80) {
+                graph.computeIfAbsent(c.getLeftEntityId(), k -> new LinkedHashSet<>()).add(c.getRightEntityId());
+                graph.computeIfAbsent(c.getRightEntityId(), k -> new LinkedHashSet<>()).add(c.getLeftEntityId());
+            }
+        }
+
+        Map<String, BlockHint> hintById = new LinkedHashMap<>();
+        for (BlockHint h : hints) hintById.put(h.getEntityId(), h);
+
+        List<Set<String>> components = components(graph);
+        Map<String, String> entityToFused = new LinkedHashMap<>();
+        List<FusedEntity> fused = new ArrayList<>();
+
+        for (Set<String> component : components) {
+            String clusterId = LogicalIdGenerator.clusterId(component);
+            String type = canonicalType(component, hintById);
+            String fusedId = LogicalIdGenerator.fusedId(clusterId, type);
+
+            FusedEntity e = new FusedEntity();
+            e.setClusterId(clusterId);
+            e.setEntityType(type);
+            e.setFusedId(fusedId);
+            e.getSourceEntityIds().addAll(component);
+
+            for (String id : component) {
+                BlockHint h = hintById.get(id);
+                if (h != null) {
+                    e.getCanonicalAttributes().putAll(h.getSearchAttributes());
+                    entityToFused.put(id, fusedId);
+                }
+            }
+
+            fused.add(e);
+        }
+
+        List<FusedRelation> relations = new ArrayList<>();
+
+        for (CandidateRecord c : candidates) {
+            String source = entityToFused.get(c.getLeftEntityId());
+            String target = entityToFused.get(c.getRightEntityId());
+
+            if (source == null || target == null || source.equals(target)) continue;
+
+            FusedRelation r = new FusedRelation();
+            r.setSourceFusedId(source);
+            r.setTargetFusedId(target);
+            r.setRelationType(c.getRelationHint());
+            r.setConfidence(c.getMatchProbability());
+            r.setRelationId(LogicalIdGenerator.relationId(source, c.getRelationHint(), target));
+            r.getEvidence().put("candidate_id", c.getCandidateId());
+
+            relations.add(r);
+        }
+
+        return new Result(fused, relations);
+    }
+
+    private List<Set<String>> components(Map<String, Set<String>> graph) {
+        List<Set<String>> out = new ArrayList<>();
+        Set<String> visited = new LinkedHashSet<>();
+
+        for (String node : graph.keySet()) {
+            if (!visited.contains(node)) {
+                Set<String> c = new LinkedHashSet<>();
+                dfs(node, graph, visited, c);
+                out.add(c);
+            }
+        }
+
+        return out;
+    }
+
+    private void dfs(String node, Map<String, Set<String>> graph, Set<String> visited, Set<String> out) {
+        visited.add(node);
+        out.add(node);
+
+        for (String next : graph.getOrDefault(node, Set.of())) {
+            if (!visited.contains(next)) dfs(next, graph, visited, out);
+        }
+    }
+
+    private String canonicalType(Set<String> component, Map<String, BlockHint> hints) {
+        for (String id : component) {
+            BlockHint h = hints.get(id);
+            if (h != null && "PARTY".equals(h.getEntityType())) return "PARTY";
+        }
+
+        for (String id : component) {
+            BlockHint h = hints.get(id);
+            if (h != null) return h.getEntityType();
+        }
+
+        return "ENTITY";
+    }
+
+    public record Result(
+            List<FusedEntity> fusedEntities,
+            List<FusedRelation> fusedRelations
+    ) {}
+}
