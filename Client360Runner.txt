@@ -1,0 +1,198 @@
+package com.integration.em.client360;
+
+import com.integration.em.client360.block.BlockHint;
+import com.integration.em.client360.block.BlockHintGenerator;
+import com.integration.em.client360.block.LogicalBlock;
+import com.integration.em.client360.block.LogicalBlockBuilder;
+import com.integration.em.client360.candidate.CandidateGenerator;
+import com.integration.em.client360.candidate.CandidateRecord;
+import com.integration.em.client360.config.CsvSourceConfig;
+import com.integration.em.client360.dataintegra.DataIntegraCsvLoader;
+import com.integration.em.client360.dataintegra.DataIntegraMatcher;
+import com.integration.em.client360.exception.PipelineExceptionRecord;
+import com.integration.em.client360.export.CsvExportService;
+import com.integration.em.client360.fusion.FusedEntity;
+import com.integration.em.client360.fusion.FusedRelation;
+import com.integration.em.client360.fusion.FusionService;
+import com.integration.em.client360.graph.FalkorDbLoader;
+import com.integration.em.client360.graph.KgEdge;
+import com.integration.em.client360.graph.KgNode;
+import com.integration.em.client360.graph.KnowledgeGraphGenerator;
+import com.integration.em.client360.importer.SimpleCsvMapReader;
+import com.integration.em.client360.semantic.JaroScorer;
+import com.integration.em.client360.semantic.LlmEmbeddingClient;
+import com.integration.em.client360.semantic.MatchProbabilityService;
+import com.integration.em.client360.semantic.SemanticScorer;
+import com.integration.em.model.Aligner;
+import com.integration.em.model.Attribute;
+import com.integration.em.model.DataSet;
+import com.integration.em.model.Record;
+import com.integration.em.processing.Processable;
+
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class Client360Runner {
+
+    public static void main(String[] args) throws Exception {
+
+        List<CsvSourceConfig> sources = List.of(
+                new CsvSourceConfig("party", "PARTY", "data/party.csv", "mrd_id",
+                        List.of("grid", "mrd_id"),
+                        List.of("grid", "mrd_id", "party_name", "country"),
+                        List.of("party_name", "legal_name"),
+                        List.of("parent_grid")),
+
+                new CsvSourceConfig("account", "SEC_ACCOUNT", "data/account.csv", "account_mrd_id",
+                        List.of("client_grid", "account_mrd_id"),
+                        List.of("account_mrd_id", "account_nm", "client_grid", "account_tp"),
+                        List.of("account_nm"),
+                        List.of("client_grid")),
+
+                new CsvSourceConfig("cash_account", "CASH_ACCOUNT", "data/cash_account.csv", "cash_mrd_account",
+                        List.of("client_grid", "cash_mrd_account"),
+                        List.of("cash_mrd_account", "cash_account_nm", "client_grid"),
+                        List.of("cash_account_nm"),
+                        List.of("client_grid")),
+
+                new CsvSourceConfig("linked_account", "ACCOUNT_LINK", "data/linked_account.csv", "sec_mrd_account",
+                        List.of("client_grid"),
+                        List.of("cash_mrd_account", "sec_mrd_account", "client_grid"),
+                        List.of("cash_mrd_account", "sec_mrd_account"),
+                        List.of("cash_mrd_account", "sec_mrd_account")),
+
+                new CsvSourceConfig("alternate_identifier", "ALTERNATE_IDENTIFIER", "data/alternate_identifier.csv", "alternate_tp_value",
+                        List.of("alternate_tp_value"),
+                        List.of("alternate_tp_value", "alternate_tp", "mrd_id"),
+                        List.of("alternate_tp_value"),
+                        List.of("mrd_id")),
+
+                new CsvSourceConfig("mastergroup", "MASTERGROUP", "data/mastergroup.csv", "parent_grid",
+                        List.of("parent_grid"),
+                        List.of("parent_grid", "mg_name", "mg_type"),
+                        List.of("mg_name"),
+                        List.of("parent_grid")),
+
+                new CsvSourceConfig("mastergroup_membership", "MASTERGROUP_MEMBER", "data/mastergroup_membership.csv", "child_grid",
+                        List.of("parent_grid", "child_grid"),
+                        List.of("parent_grid", "child_grid"),
+                        List.of("child_grid"),
+                        List.of("parent_grid", "child_grid")),
+
+                new CsvSourceConfig("arrangement_role", "ARRANGEMENT_ROLE", "data/arrangement_role.csv", "arrange_id",
+                        List.of("role_value"),
+                        List.of("role_value", "role_type", "arrange_id"),
+                        List.of("role_value"),
+                        List.of("arrange_id")),
+
+                new CsvSourceConfig("contact", "CONTACT", "data/contact.csv", "email",
+                        List.of("email", "phone"),
+                        List.of("first_name", "last_name", "email", "phone"),
+                        List.of("first_name", "last_name", "email"),
+                        List.of("mrd_id")),
+
+                new CsvSourceConfig("security", "SECURITY", "data/security.csv", "isin",
+                        List.of("isin", "cusip"),
+                        List.of("isin", "cusip", "security_name"),
+                        List.of("security_name", "isin"),
+                        List.of("account_mrd_id"))
+        );
+
+        /*
+         * DataIntegra usage
+         */
+        DataIntegraCsvLoader diLoader = new DataIntegraCsvLoader();
+        DataSet<Record, Attribute> d1 = diLoader.load(sources.get(0).path());
+        DataSet<Record, Attribute> d2 = diLoader.load(sources.get(1).path());
+
+        Processable<Aligner<Record, Attribute>> aligners =
+                new DataIntegraMatcher().align(d1, d2);
+
+        System.out.println("DataIntegra aligners: " + aligners.get().size());
+
+        /*
+         * Generic import + block hints.
+         */
+        SimpleCsvMapReader reader = new SimpleCsvMapReader();
+        BlockHintGenerator hintGenerator = new BlockHintGenerator();
+
+        List<BlockHint> allHints = new ArrayList<>();
+        List<PipelineExceptionRecord> exceptions = new ArrayList<>();
+
+        for (CsvSourceConfig source : sources) {
+            List<Map<String, String>> rows = reader.read(source.path());
+            BlockHintGenerator.Result r = hintGenerator.generate(source, rows);
+            allHints.addAll(r.hints());
+            exceptions.addAll(r.exceptions());
+        }
+
+        /*
+         * Logical blocks.
+         */
+        List<LogicalBlock> blocks =
+                new LogicalBlockBuilder().build(allHints);
+
+        /*
+         * Candidate matching: Jaro + LLM semantic + probability.
+         */
+        LlmEmbeddingClient llm = new LlmEmbeddingClient(
+                System.getProperty("llm.url", "https://api.openai.com/v1/embeddings"),
+                System.getProperty("llm.token", ""),
+                System.getProperty("llm.model", "text-embedding-3-small")
+        );
+
+        List<CandidateRecord> candidates =
+                new CandidateGenerator(
+                        new JaroScorer(),
+                        new SemanticScorer(llm),
+                        new MatchProbabilityService()
+                ).generate(blocks);
+
+        /*
+         * Fusion.
+         */
+        FusionService.Result fusion =
+                new FusionService().fuse(allHints, candidates);
+
+        List<FusedEntity> fusedEntities = fusion.fusedEntities();
+        List<FusedRelation> fusedRelations = fusion.fusedRelations();
+
+        /*
+         * KG generation.
+         */
+        KnowledgeGraphGenerator.Result kg =
+                new KnowledgeGraphGenerator().generate(fusedEntities, fusedRelations);
+
+        List<KgNode> nodes = kg.nodes();
+        List<KgEdge> edges = kg.edges();
+
+        /*
+         * Export every stage.
+         */
+        CsvExportService export = new CsvExportService(Path.of("exports"));
+
+        export.blockHints(allHints);
+        export.exceptions(exceptions);
+        export.candidates(candidates);
+        export.fusedEntities(fusedEntities);
+        export.fusedRelations(fusedRelations);
+        export.kgNodes(nodes);
+        export.kgEdges(edges);
+        export.screen4(fusedEntities, fusedRelations);
+
+        /*
+         * Optional FalkorDB load.
+         */
+        if (Boolean.getBoolean("falkor.enabled")) {
+            new FalkorDbLoader(
+                    System.getProperty("falkor.host", "localhost"),
+                    Integer.parseInt(System.getProperty("falkor.port", "6379")),
+                    System.getProperty("falkor.graph", "CLIENT360_GRAPH")
+            ).load(nodes, edges);
+        }
+
+        System.out.println("Done. Check ./exports");
+    }
+}
