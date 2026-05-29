@@ -1,0 +1,28 @@
+package com.integration.em.client360.block;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+public class LogicalBlockBuilder {
+
+    public List<LogicalBlock> build(List<BlockHint> hints) {
+        Map<String, LogicalBlock> blocks = new LinkedHashMap<>();
+
+        for (BlockHint hint : hints) {
+            LogicalBlock block = blocks.computeIfAbsent(
+                    hint.getLogicalKey(),
+                    k -> {
+                        LogicalBlock b = new LogicalBlock();
+                        b.setLogicalKey(k);
+                        return b;
+                    }
+            );
+
+            block.getHints().add(hint);
+        }
+
+        return new ArrayList<>(blocks.values());
+    }
+}
