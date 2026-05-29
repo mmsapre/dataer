@@ -1,0 +1,21 @@
+package com.integration.em.client360.dataintegra;
+
+import com.integration.em.model.Attribute;
+import com.integration.em.model.CSVRecordReader;
+import com.integration.em.model.DataSet;
+import com.integration.em.model.HashDataSet;
+import com.integration.em.model.Record;
+
+import java.io.File;
+
+public class DataIntegraCsvLoader {
+
+    public DataSet<Record, Attribute> load(String file) throws Exception {
+        DataSet<Record, Attribute> dataSet = new HashDataSet<>();
+
+        new CSVRecordReader(0)
+                .loadFromCSV(new File(file), dataSet);
+
+        return dataSet;
+    }
+}
