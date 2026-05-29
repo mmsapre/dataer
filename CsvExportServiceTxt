@@ -1,0 +1,154 @@
+package com.integration.em.client360.export;
+
+import com.integration.em.client360.block.BlockHint;
+import com.integration.em.client360.candidate.CandidateRecord;
+import com.integration.em.client360.exception.PipelineExceptionRecord;
+import com.integration.em.client360.fusion.FusedEntity;
+import com.integration.em.client360.fusion.FusedRelation;
+import com.integration.em.client360.graph.KgEdge;
+import com.integration.em.client360.graph.KgNode;
+
+import java.io.BufferedWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+public class CsvExportService {
+
+    private final Path out;
+
+    public CsvExportService(Path out) {
+        this.out = out;
+    }
+
+    public void blockHints(List<BlockHint> rows) throws Exception {
+        write("01_block_hints.csv",
+                "block_id,logical_key,entity_id,entity_type,source,search,matching,relation\n",
+                rows.stream().map(r -> csv(
+                        r.getBlockId(),
+                        r.getLogicalKey(),
+                        r.getEntityId(),
+                        r.getEntityType(),
+                        r.getSourceName(),
+                        r.getSearchAttributes().toString(),
+                        r.getMatchingAttributes().toString(),
+                        r.getRelationAttributes().toString()
+                )).toList());
+    }
+
+    public void exceptions(List<PipelineExceptionRecord> rows) throws Exception {
+        write("02_exceptions.csv",
+                "stage,source,row,type,message,raw\n",
+                rows.stream().map(r -> csv(
+                        r.getStage(),
+                        r.getSourceName(),
+                        String.valueOf(r.getRowNumber()),
+                        r.getType(),
+                        r.getMessage(),
+                        r.getRawRow()
+                )).toList());
+    }
+
+    public void candidates(List<CandidateRecord> rows) throws Exception {
+        write("03_candidates.csv",
+                "candidate_id,block_key,left,right,left_type,right_type,jaro,semantic,rule,probability,relation,evidence\n",
+                rows.stream().map(r -> csv(
+                        r.getCandidateId(),
+                        r.getBlockKey(),
+                        r.getLeftEntityId(),
+                        r.getRightEntityId(),
+                        r.getLeftEntityType(),
+                        r.getRightEntityType(),
+                        String.valueOf(r.getJaroScore()),
+                        String.valueOf(r.getSemanticScore()),
+                        String.valueOf(r.getRuleScore()),
+                        String.valueOf(r.getMatchProbability()),
+                        r.getRelationHint(),
+                        r.getEvidence().toString()
+                )).toList());
+    }
+
+    public void fusedEntities(List<FusedEntity> rows) throws Exception {
+        write("04_fused_entities.csv",
+                "fused_id,cluster_id,entity_type,canonical_attributes,source_entity_ids\n",
+                rows.stream().map(r -> csv(
+                        r.getFusedId(),
+                        r.getClusterId(),
+                        r.getEntityType(),
+                        r.getCanonicalAttributes().toString(),
+                        r.getSourceEntityIds().toString()
+                )).toList());
+    }
+
+    public void fusedRelations(List<FusedRelation> rows) throws Exception {
+        write("05_fused_relations.csv",
+                "relation_id,source,relation,target,confidence,evidence\n",
+                rows.stream().map(r -> csv(
+                        r.getRelationId(),
+                        r.getSourceFusedId(),
+                        r.getRelationType(),
+                        r.getTargetFusedId(),
+                        String.valueOf(r.getConfidence()),
+                        r.getEvidence().toString()
+                )).toList());
+    }
+
+    public void kgNodes(List<KgNode> rows) throws Exception {
+        write("06_kg_nodes.csv",
+                "node_id,label,properties\n",
+                rows.stream().map(r -> csv(
+                        r.getNodeId(),
+                        r.getLabel(),
+                        r.getProperties().toString()
+                )).toList());
+    }
+
+    public void kgEdges(List<KgEdge> rows) throws Exception {
+        write("07_kg_edges.csv",
+                "edge_id,source,relation,target,properties\n",
+                rows.stream().map(r -> csv(
+                        r.getEdgeId(),
+                        r.getSource(),
+                        r.getRelation(),
+                        r.getTarget(),
+                        r.getProperties().toString()
+                )).toList());
+    }
+
+    public void screen4(List<FusedEntity> entities, List<FusedRelation> relations) throws Exception {
+        write("08_screen4_view.csv",
+                "fused_id,cluster_id,entity_type,search_text,relations\n",
+                entities.stream().map(e -> csv(
+                        e.getFusedId(),
+                        e.getClusterId(),
+                        e.getEntityType(),
+                        e.getCanonicalAttributes().toString(),
+                        relations.stream()
+                                .filter(r -> e.getFusedId().equals(r.getSourceFusedId()) ||
+                                        e.getFusedId().equals(r.getTargetFusedId()))
+                                .map(r -> r.getSourceFusedId() + "-" + r.getRelationType() + "->" + r.getTargetFusedId())
+                                .toList().toString()
+                )).toList());
+    }
+
+    private void write(String file, String header, List<String> lines) throws Exception {
+        Files.createDirectories(out);
+        try (BufferedWriter w = Files.newBufferedWriter(out.resolve(file))) {
+            w.write(header);
+            for (String l : lines) {
+                w.write(l);
+                w.write("\n");
+            }
+        }
+    }
+
+    private String csv(String... v) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < v.length; i++) {
+            if (i > 0) sb.append(",");
+            String s = v[i] == null ? "" : v[i];
+            sb.append("\"").append(s.replace("\"", "\"\"")).append("\"");
+        }
+        return sb.toString();
+    }
+}
