@@ -1,0 +1,15 @@
+package com.integration.em.client360.block;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class LogicalBlock {
+
+    private String logicalKey;
+    private final List<BlockHint> hints = new ArrayList<>();
+
+    public String getLogicalKey() { return logicalKey; }
+    public void setLogicalKey(String logicalKey) { this.logicalKey = logicalKey; }
+
+    public List<BlockHint> getHints() { return hints; }
+}
