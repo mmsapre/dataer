@@ -1,0 +1,21 @@
+package com.integration.em.client360.semantic;
+
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
+
+public class JaroScorer {
+
+    private final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
+
+    public double score(String left, String right) {
+        if (left == null || right == null) return 0.0;
+
+        return similarity.apply(
+                normalize(left),
+                normalize(right)
+        );
+    }
+
+    private String normalize(String value) {
+        return value.toUpperCase().replaceAll("[^A-Z0-9]", "");
+    }
+}
