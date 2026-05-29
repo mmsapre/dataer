@@ -1,0 +1,13 @@
+package com.integration.em.client360.semantic;
+
+public class MatchProbabilityService {
+
+    public double probability(
+            double jaro,
+            double semantic,
+            double rule
+    ) {
+        double z = -2.0 + 2.2 * jaro + 2.8 * semantic + 1.8 * rule;
+        return 1.0 / (1.0 + Math.exp(-z));
+    }
+}
