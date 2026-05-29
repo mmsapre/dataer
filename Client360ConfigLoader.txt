@@ -1,0 +1,46 @@
+package com.integration.em.client360.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import java.io.File;
+import java.io.InputStream;
+
+public class Client360ConfigLoader {
+
+    private final ObjectMapper mapper =
+            new ObjectMapper(
+                    new YAMLFactory()
+            );
+
+    public Client360Config load(String yamlFile)
+            throws Exception {
+
+        return mapper.readValue(
+                new File(yamlFile),
+                Client360Config.class
+        );
+    }
+
+    public Client360Config loadFromClasspath(
+            String resource)
+            throws Exception {
+
+        try(InputStream in =
+                    getClass()
+                            .getClassLoader()
+                            .getResourceAsStream(resource)) {
+
+            if(in == null) {
+                throw new RuntimeException(
+                        "Resource not found : "
+                                + resource);
+            }
+
+            return mapper.readValue(
+                    in,
+                    Client360Config.class
+            );
+        }
+    }
+}
