@@ -1,0 +1,38 @@
+package com.integration.em.client360.block;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class BlockHint {
+
+    private String blockId;
+    private String logicalKey;
+    private String entityId;
+    private String entityType;
+    private String sourceName;
+
+    private final Map<String, String> searchAttributes = new LinkedHashMap<>();
+    private final Map<String, String> matchingAttributes = new LinkedHashMap<>();
+    private final Map<String, String> relationAttributes = new LinkedHashMap<>();
+    private final Map<String, String> rawAttributes = new LinkedHashMap<>();
+
+    public String getBlockId() { return blockId; }
+    public void setBlockId(String blockId) { this.blockId = blockId; }
+
+    public String getLogicalKey() { return logicalKey; }
+    public void setLogicalKey(String logicalKey) { this.logicalKey = logicalKey; }
+
+    public String getEntityId() { return entityId; }
+    public void setEntityId(String entityId) { this.entityId = entityId; }
+
+    public String getEntityType() { return entityType; }
+    public void setEntityType(String entityType) { this.entityType = entityType; }
+
+    public String getSourceName() { return sourceName; }
+    public void setSourceName(String sourceName) { this.sourceName = sourceName; }
+
+    public Map<String, String> getSearchAttributes() { return searchAttributes; }
+    public Map<String, String> getMatchingAttributes() { return matchingAttributes; }
+    public Map<String, String> getRelationAttributes() { return relationAttributes; }
+    public Map<String, String> getRawAttributes() { return rawAttributes; }
+}
