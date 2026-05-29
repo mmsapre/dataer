@@ -1,0 +1,28 @@
+package com.integration.em.client360.graph;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class KgEdge {
+
+    private String edgeId;
+    private String source;
+    private String relation;
+    private String target;
+
+    private final Map<String, String> properties = new LinkedHashMap<>();
+
+    public String getEdgeId() { return edgeId; }
+    public void setEdgeId(String edgeId) { this.edgeId = edgeId; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+
+    public String getRelation() { return relation; }
+    public void setRelation(String relation) { this.relation = relation; }
+
+    public String getTarget() { return target; }
+    public void setTarget(String target) { this.target = target; }
+
+    public Map<String, String> getProperties() { return properties; }
+}
