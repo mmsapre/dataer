@@ -1,0 +1,90 @@
+package com.integration.em.client360.candidate;
+
+import com.integration.em.client360.block.BlockHint;
+import com.integration.em.client360.block.LogicalBlock;
+import com.integration.em.client360.semantic.JaroScorer;
+import com.integration.em.client360.semantic.MatchProbabilityService;
+import com.integration.em.client360.semantic.SemanticScorer;
+import com.integration.em.client360.util.LogicalIdGenerator;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class CandidateGenerator {
+
+    private final JaroScorer jaro;
+    private final SemanticScorer semantic;
+    private final MatchProbabilityService probability;
+
+    public CandidateGenerator(
+            JaroScorer jaro,
+            SemanticScorer semantic,
+            MatchProbabilityService probability
+    ) {
+        this.jaro = jaro;
+        this.semantic = semantic;
+        this.probability = probability;
+    }
+
+    public List<CandidateRecord> generate(List<LogicalBlock> blocks) {
+        List<CandidateRecord> out = new ArrayList<>();
+
+        for (LogicalBlock block : blocks) {
+            List<BlockHint> hints = block.getHints();
+
+            for (int i = 0; i < hints.size(); i++) {
+                for (int j = i + 1; j < hints.size(); j++) {
+                    BlockHint left = hints.get(i);
+                    BlockHint right = hints.get(j);
+
+                    if (left.getEntityId().equals(right.getEntityId())) continue;
+
+                    String leftText = text(left);
+                    String rightText = text(right);
+
+                    double jaroScore = jaro.score(leftText, rightText);
+                    double semanticScore = semantic.score(leftText, rightText);
+                    double ruleScore = left.getLogicalKey().equals(right.getLogicalKey()) ? 1.0 : 0.0;
+                    double prob = probability.probability(jaroScore, semanticScore, ruleScore);
+
+                    if (prob < 0.70) continue;
+
+                    CandidateRecord c = new CandidateRecord();
+                    c.setCandidateId(LogicalIdGenerator.candidateId(left.getEntityId(), right.getEntityId()));
+                    c.setBlockKey(block.getLogicalKey());
+                    c.setLeftEntityId(left.getEntityId());
+                    c.setRightEntityId(right.getEntityId());
+                    c.setLeftEntityType(left.getEntityType());
+                    c.setRightEntityType(right.getEntityType());
+                    c.setJaroScore(jaroScore);
+                    c.setSemanticScore(semanticScore);
+                    c.setRuleScore(ruleScore);
+                    c.setMatchProbability(prob);
+                    c.setRelationHint(relationHint(left.getEntityType(), right.getEntityType()));
+
+                    c.getEvidence().put("left", left.getSearchAttributes().toString());
+                    c.getEvidence().put("right", right.getSearchAttributes().toString());
+
+                    out.add(c);
+                }
+            }
+        }
+
+        return out;
+    }
+
+    private String text(BlockHint h) {
+        if (!h.getMatchingAttributes().isEmpty()) return h.getMatchingAttributes().values().toString();
+        if (!h.getSearchAttributes().isEmpty()) return h.getSearchAttributes().values().toString();
+        return h.getRawAttributes().toString();
+    }
+
+    private String relationHint(String left, String right) {
+        if ("PARTY".equals(left) && right.contains("ACCOUNT")) return "OWNS";
+        if ("MASTERGROUP".equals(left)) return "HAS_MEMBER";
+        if (left.contains("ACCOUNT") && right.contains("ACCOUNT")) return "LINKED_TO";
+        if ("PARTY".equals(left) && "CONTACT".equals(right)) return "HAS_CONTACT";
+        if (left.contains("ACCOUNT") && "SECURITY".equals(right)) return "HOLDS";
+        return "RELATED_TO";
+    }
+}
