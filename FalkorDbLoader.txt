@@ -1,0 +1,62 @@
+package com.integration.em.client360.graph;
+
+import redis.clients.jedis.Jedis;
+
+import java.util.List;
+import java.util.Map;
+
+public class FalkorDbLoader {
+
+    private final Jedis jedis;
+    private final String graph;
+
+    public FalkorDbLoader(String host, int port, String graph) {
+        this.jedis = new Jedis(host, port);
+        this.graph = graph;
+    }
+
+    public void load(List<KgNode> nodes, List<KgEdge> edges) {
+        for (KgNode n : nodes) {
+            execute(
+                    "MERGE (n:" + safe(n.getLabel()) + " {id:'" + esc(n.getNodeId()) + "'}) " +
+                            "SET " + props("n", n.getProperties())
+            );
+        }
+
+        for (KgEdge e : edges) {
+            execute(
+                    "MATCH (a {id:'" + esc(e.getSource()) + "'}) " +
+                            "MATCH (b {id:'" + esc(e.getTarget()) + "'}) " +
+                            "MERGE (a)-[r:" + safe(e.getRelation()) + "]->(b) " +
+                            "SET " + props("r", e.getProperties())
+            );
+        }
+    }
+
+    private void execute(String q) {
+        jedis.sendCommand(() -> "GRAPH.QUERY", graph, q);
+    }
+
+    private String props(String alias, Map<String, String> props) {
+        if (props.isEmpty()) return alias + ".updated='true'";
+
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+
+        for (Map.Entry<String, String> e : props.entrySet()) {
+            if (i++ > 0) sb.append(", ");
+            sb.append(alias).append(".").append(safe(e.getKey()))
+                    .append("='").append(esc(e.getValue())).append("'");
+        }
+
+        return sb.toString();
+    }
+
+    private String safe(String v) {
+        return v.replaceAll("[^A-Za-z0-9_]", "_");
+    }
+
+    private String esc(String v) {
+        return v == null ? "" : v.replace("'", "\\'");
+    }
+}
