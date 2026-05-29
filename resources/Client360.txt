@@ -1,0 +1,269 @@
+application:
+
+  name: client360
+
+semantic:
+
+  enabled: true
+
+  llm-url: https://api.openai.com/v1/embeddings
+
+  token-env: OPENAI_API_KEY
+
+  model: text-embedding-3-small
+
+fusion:
+
+  probability-threshold: 0.80
+
+  candidate-threshold: 0.70
+
+exports:
+
+  folder: exports
+
+falkordb:
+
+  enabled: true
+
+  host: localhost
+
+  port: 6379
+
+  graph-name: CLIENT360
+
+sources:
+
+  - source-name: party
+
+    entity-type: PARTY
+
+    csv-file: data/party.csv
+
+    business-key: mrd_id
+
+    blocking-fields:
+      - grid
+      - mrd_id
+
+    search-fields:
+      - grid
+      - mrd_id
+      - party_name
+      - country
+
+    matching-fields:
+      - party_name
+      - legal_name
+
+    relation-fields:
+      - parent_grid
+
+  - source-name: account
+
+    entity-type: SEC_ACCOUNT
+
+    csv-file: data/account.csv
+
+    business-key: account_mrd_id
+
+    blocking-fields:
+      - client_grid
+      - account_mrd_id
+
+    search-fields:
+      - account_mrd_id
+      - account_nm
+      - client_grid
+
+    matching-fields:
+      - account_nm
+
+    relation-fields:
+      - client_grid
+
+  - source-name: cash_account
+
+    entity-type: CASH_ACCOUNT
+
+    csv-file: data/cash_account.csv
+
+    business-key: cash_mrd_account
+
+    blocking-fields:
+      - client_grid
+      - cash_mrd_account
+
+    search-fields:
+      - cash_mrd_account
+      - cash_account_nm
+      - client_grid
+
+    matching-fields:
+      - cash_account_nm
+
+    relation-fields:
+      - client_grid
+
+  - source-name: linked_account
+
+    entity-type: ACCOUNT_LINK
+
+    csv-file: data/linked_account.csv
+
+    business-key: sec_mrd_account
+
+    blocking-fields:
+      - client_grid
+
+    search-fields:
+      - cash_mrd_account
+      - sec_mrd_account
+      - client_grid
+
+    matching-fields:
+      - cash_mrd_account
+      - sec_mrd_account
+
+    relation-fields:
+      - cash_mrd_account
+      - sec_mrd_account
+
+  - source-name: alternate_identifier
+
+    entity-type: ALTERNATE_IDENTIFIER
+
+    csv-file: data/alternate_identifier.csv
+
+    business-key: alternate_tp_value
+
+    blocking-fields:
+      - alternate_tp_value
+
+    search-fields:
+      - alternate_tp_value
+      - alternate_tp
+      - mrd_id
+
+    matching-fields:
+      - alternate_tp_value
+
+    relation-fields:
+      - mrd_id
+
+  - source-name: mastergroup
+
+    entity-type: MASTERGROUP
+
+    csv-file: data/mastergroup.csv
+
+    business-key: parent_grid
+
+    blocking-fields:
+      - parent_grid
+
+    search-fields:
+      - parent_grid
+      - mg_name
+      - mg_type
+
+    matching-fields:
+      - mg_name
+
+    relation-fields:
+      - parent_grid
+
+  - source-name: mastergroup_membership
+
+    entity-type: MASTERGROUP_MEMBER
+
+    csv-file: data/mastergroup_membership.csv
+
+    business-key: child_grid
+
+    blocking-fields:
+      - parent_grid
+      - child_grid
+
+    search-fields:
+      - parent_grid
+      - child_grid
+
+    matching-fields:
+      - child_grid
+
+    relation-fields:
+      - parent_grid
+      - child_grid
+
+  - source-name: arrangement_role
+
+    entity-type: ARRANGEMENT_ROLE
+
+    csv-file: data/arrangement_role.csv
+
+    business-key: arrange_id
+
+    blocking-fields:
+      - role_value
+
+    search-fields:
+      - role_value
+      - role_type
+      - arrange_id
+
+    matching-fields:
+      - role_value
+
+    relation-fields:
+      - arrange_id
+
+  - source-name: contact
+
+    entity-type: CONTACT
+
+    csv-file: data/contact.csv
+
+    business-key: email
+
+    blocking-fields:
+      - email
+      - phone
+
+    search-fields:
+      - first_name
+      - last_name
+      - email
+      - phone
+
+    matching-fields:
+      - first_name
+      - last_name
+      - email
+
+    relation-fields:
+      - mrd_id
+
+  - source-name: security
+
+    entity-type: SECURITY
+
+    csv-file: data/security.csv
+
+    business-key: isin
+
+    blocking-fields:
+      - isin
+      - cusip
+
+    search-fields:
+      - isin
+      - cusip
+      - security_name
+
+    matching-fields:
+      - security_name
+      - isin
+
+    relation-fields:
+      - account_mrd_id
