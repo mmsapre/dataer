@@ -1,0 +1,61 @@
+package com.integration.em.client360.semantic;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class SemanticScorer {
+
+    private final LlmEmbeddingClient client;
+
+    public SemanticScorer(LlmEmbeddingClient client) {
+        this.client = client;
+    }
+
+    public double score(String left, String right) {
+        try {
+            List<Double> a = client.embed(left);
+            List<Double> b = client.embed(right);
+
+            if (!a.isEmpty() && !b.isEmpty()) {
+                return cosine(a, b);
+            }
+
+            return tokenOverlap(left, right);
+
+        } catch (Exception e) {
+            return tokenOverlap(left, right);
+        }
+    }
+
+    private double cosine(List<Double> a, List<Double> b) {
+        int n = Math.min(a.size(), b.size());
+        if (n == 0) return 0.0;
+
+        double dot = 0, an = 0, bn = 0;
+
+        for (int i = 0; i < n; i++) {
+            dot += a.get(i) * b.get(i);
+            an += a.get(i) * a.get(i);
+            bn += b.get(i) * b.get(i);
+        }
+
+        if (an == 0 || bn == 0) return 0.0;
+        return dot / (Math.sqrt(an) * Math.sqrt(bn));
+    }
+
+    private double tokenOverlap(String l, String r) {
+        Set<String> left = new HashSet<>(List.of(l.toLowerCase().split("\\s+")));
+        Set<String> right = new HashSet<>(List.of(r.toLowerCase().split("\\s+")));
+
+        if (left.isEmpty() || right.isEmpty()) return 0.0;
+
+        Set<String> intersection = new HashSet<>(left);
+        intersection.retainAll(right);
+
+        Set<String> union = new HashSet<>(left);
+        union.addAll(right);
+
+        return (double) intersection.size() / union.size();
+    }
+}
