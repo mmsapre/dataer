@@ -1,0 +1,20 @@
+package com.integration.em.client360.graph;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class KgNode {
+
+    private String nodeId;
+    private String label;
+
+    private final Map<String, String> properties = new LinkedHashMap<>();
+
+    public String getNodeId() { return nodeId; }
+    public void setNodeId(String nodeId) { this.nodeId = nodeId; }
+
+    public String getLabel() { return label; }
+    public void setLabel(String label) { this.label = label; }
+
+    public Map<String, String> getProperties() { return properties; }
+}
