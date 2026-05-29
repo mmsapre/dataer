@@ -1,0 +1,27 @@
+package com.integration.em.client360.config;
+
+public final class ConfigRegistry {
+
+    private static Client360Config CONFIG;
+
+    private ConfigRegistry() {}
+
+    public static void initialize(
+            String yaml)
+            throws Exception {
+
+        CONFIG =
+                new Client360ConfigLoader()
+                        .load(yaml);
+    }
+
+    public static Client360Config get() {
+
+        if(CONFIG == null) {
+            throw new IllegalStateException(
+                    "Config not loaded");
+        }
+
+        return CONFIG;
+    }
+}
