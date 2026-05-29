@@ -1,0 +1,31 @@
+relationships:
+
+  - parent: PARTY
+    child: SEC_ACCOUNT
+    relation: OWNS
+    join-field: client_grid
+
+  - parent: PARTY
+    child: CASH_ACCOUNT
+    relation: OWNS
+    join-field: client_grid
+
+  - parent: PARTY
+    child: CONTACT
+    relation: HAS_CONTACT
+    join-field: mrd_id
+
+  - parent: MASTERGROUP
+    child: PARTY
+    relation: HAS_MEMBER
+    join-field: parent_grid
+
+  - parent: SEC_ACCOUNT
+    child: CASH_ACCOUNT
+    relation: LINKED_TO
+    join-field: linked_account
+
+  - parent: SEC_ACCOUNT
+    child: SECURITY
+    relation: HOLDS
+    join-field: account_mrd_id
