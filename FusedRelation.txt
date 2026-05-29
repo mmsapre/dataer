@@ -1,0 +1,32 @@
+package com.integration.em.client360.fusion;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class FusedRelation {
+
+    private String relationId;
+    private String sourceFusedId;
+    private String relationType;
+    private String targetFusedId;
+    private double confidence;
+
+    private final Map<String, String> evidence = new LinkedHashMap<>();
+
+    public String getRelationId() { return relationId; }
+    public void setRelationId(String relationId) { this.relationId = relationId; }
+
+    public String getSourceFusedId() { return sourceFusedId; }
+    public void setSourceFusedId(String sourceFusedId) { this.sourceFusedId = sourceFusedId; }
+
+    public String getRelationType() { return relationType; }
+    public void setRelationType(String relationType) { this.relationType = relationType; }
+
+    public String getTargetFusedId() { return targetFusedId; }
+    public void setTargetFusedId(String targetFusedId) { this.targetFusedId = targetFusedId; }
+
+    public double getConfidence() { return confidence; }
+    public void setConfidence(double confidence) { this.confidence = confidence; }
+
+    public Map<String, String> getEvidence() { return evidence; }
+}
