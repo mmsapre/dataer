@@ -1,0 +1,60 @@
+package com.integration.em.client360.candidate;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class CandidateRecord {
+
+    private String candidateId;
+    private String blockKey;
+
+    private String leftEntityId;
+    private String rightEntityId;
+
+    private String leftEntityType;
+    private String rightEntityType;
+
+    private double jaroScore;
+    private double semanticScore;
+    private double ruleScore;
+    private double matchProbability;
+
+    private String relationHint;
+
+    private final Map<String, String> evidence = new LinkedHashMap<>();
+
+    public String getCandidateId() { return candidateId; }
+    public void setCandidateId(String candidateId) { this.candidateId = candidateId; }
+
+    public String getBlockKey() { return blockKey; }
+    public void setBlockKey(String blockKey) { this.blockKey = blockKey; }
+
+    public String getLeftEntityId() { return leftEntityId; }
+    public void setLeftEntityId(String leftEntityId) { this.leftEntityId = leftEntityId; }
+
+    public String getRightEntityId() { return rightEntityId; }
+    public void setRightEntityId(String rightEntityId) { this.rightEntityId = rightEntityId; }
+
+    public String getLeftEntityType() { return leftEntityType; }
+    public void setLeftEntityType(String leftEntityType) { this.leftEntityType = leftEntityType; }
+
+    public String getRightEntityType() { return rightEntityType; }
+    public void setRightEntityType(String rightEntityType) { this.rightEntityType = rightEntityType; }
+
+    public double getJaroScore() { return jaroScore; }
+    public void setJaroScore(double jaroScore) { this.jaroScore = jaroScore; }
+
+    public double getSemanticScore() { return semanticScore; }
+    public void setSemanticScore(double semanticScore) { this.semanticScore = semanticScore; }
+
+    public double getRuleScore() { return ruleScore; }
+    public void setRuleScore(double ruleScore) { this.ruleScore = ruleScore; }
+
+    public double getMatchProbability() { return matchProbability; }
+    public void setMatchProbability(double matchProbability) { this.matchProbability = matchProbability; }
+
+    public String getRelationHint() { return relationHint; }
+    public void setRelationHint(String relationHint) { this.relationHint = relationHint; }
+
+    public Map<String, String> getEvidence() { return evidence; }
+}
