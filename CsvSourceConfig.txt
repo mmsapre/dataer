@@ -1,0 +1,14 @@
+package com.integration.em.client360.config;
+
+import java.util.List;
+
+public record CsvSourceConfig(
+        String sourceName,
+        String entityType,
+        String path,
+        String businessKeyField,
+        List<String> blockingFields,
+        List<String> searchFields,
+        List<String> matchingFields,
+        List<String> relationFields
+) {}
