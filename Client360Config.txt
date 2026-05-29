@@ -1,0 +1,96 @@
+package com.integration.em.client360.config;
+
+import java.util.List;
+
+public class Client360Config {
+
+    private String applicationName;
+
+    private SemanticConfig semantic;
+
+    private FalkorConfig falkorDb;
+
+    private ExportConfig exports;
+
+    private FusionConfig fusion;
+
+    private List<SourceConfig> sources;
+
+    private List<BlockingRule> blockingRules;
+
+    private List<MatchRule> matchRules;
+
+    private List<RelationshipRule> relationships;
+
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
+    public SemanticConfig getSemantic() {
+        return semantic;
+    }
+
+    public void setSemantic(SemanticConfig semantic) {
+        this.semantic = semantic;
+    }
+
+    public FalkorConfig getFalkorDb() {
+        return falkorDb;
+    }
+
+    public void setFalkorDb(FalkorConfig falkorDb) {
+        this.falkorDb = falkorDb;
+    }
+
+    public ExportConfig getExports() {
+        return exports;
+    }
+
+    public void setExports(ExportConfig exports) {
+        this.exports = exports;
+    }
+
+    public FusionConfig getFusion() {
+        return fusion;
+    }
+
+    public void setFusion(FusionConfig fusion) {
+        this.fusion = fusion;
+    }
+
+    public List<SourceConfig> getSources() {
+        return sources;
+    }
+
+    public void setSources(List<SourceConfig> sources) {
+        this.sources = sources;
+    }
+
+    public List<BlockingRule> getBlockingRules() {
+        return blockingRules;
+    }
+
+    public void setBlockingRules(List<BlockingRule> blockingRules) {
+        this.blockingRules = blockingRules;
+    }
+
+    public List<MatchRule> getMatchRules() {
+        return matchRules;
+    }
+
+    public void setMatchRules(List<MatchRule> matchRules) {
+        this.matchRules = matchRules;
+    }
+
+    public List<RelationshipRule> getRelationships() {
+        return relationships;
+    }
+
+    public void setRelationships(List<RelationshipRule> relationships) {
+        this.relationships = relationships;
+    }
+}
